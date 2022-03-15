@@ -1,0 +1,11 @@
+/.idea
+/.nyc_output
+/coverage
+/node_modules
+**/dist
+/types
+/temp
+/test/bundles
+
+package-lock.json
+*.tgz

@@ -1,0 +1,42 @@
+{
+  "name": "@thomann/sourcemap-service-webpack-plugin",
+  "version": "0.1.0",
+  "description": "webpack plugin for @thomann/sourcemap-service",
+  "main": "./dist/index.js",
+  "exports": "./dist/index.js",
+  "types": "./types/index.d.ts",
+  "type": "commonjs",
+  "scripts": {
+    "build": "tsc --project tsconfig.prod.json",
+    "watch": "tsc --watch",
+    "test": "mocha -r ts-node/register/transpile-only --full-trace 'test/**/*.ts'",
+    "coverage": "nyc npm test"
+  },
+  "files": [
+    "dist",
+    "types"
+  ],
+  "author": {
+    "name": "Oleg Kamlowski",
+    "email": ""
+  },
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "license": "MIT",
+  "keywords": [],
+  "devDependencies": {
+    "@types/mocha": "^9.0.0",
+    "@types/node": "^16.11.11",
+    "@types/webpack": "^4.41.32",
+    "mocha": "^9.1.4",
+    "nock": "^13.2.4",
+    "nyc": "^15.1.0",
+    "ts-node": "^10.4.0",
+    "typescript": "^4.5.4"
+  },
+  "peerDependencies": {
+    "webpack": "4"
+  }
+}
