@@ -1,6 +1,6 @@
 {
   "name": "@thomann/sourcemap-service-webpack-plugin",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "webpack plugin for @thomann/sourcemap-service",
   "main": "./dist/index.js",
   "exports": "./dist/index.js",
@@ -18,7 +18,7 @@
   ],
   "author": {
     "name": "Oleg Kamlowski",
-    "email": ""
+    "email": "oleg.kamlowski@thomann.de"
   },
   "repository": {
     "type": "git",
