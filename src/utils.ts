@@ -1,5 +1,6 @@
 import {createHash} from 'crypto';
-import {IncomingMessage, request} from 'http';
+import {IncomingMessage, request as httpRequest} from 'http';
+import {request as httpsRequest} from 'https';
 import {appendFile} from 'fs';
 
 /**
@@ -12,6 +13,17 @@ export const hash = (string: string): string => (
         .digest('hex')
 );
 
+/**
+ *
+ * @param object
+ */
+export const stringify = (object: object): string => (
+    Object.keys(object)
+        .filter((key) => !!object[key])
+        .map((key) => [key, object[key]])
+        .reduce((acc, [key, value]) => acc.push(`${key}="${value}"`) && acc, [])
+        .join(', ')
+)
 /**
  *
  * @param file
@@ -35,10 +47,11 @@ export const append = (file: string, data: string): Promise<string> => {
 
 /**
  *
+ * @param protocol
  * @param hostname
  * @param port
  */
-export const fetch = ({hostname, port}: { hostname: string, port: number }) => {
+export const fetch = ({protocol, hostname, port}: { protocol: string, hostname: string, port: number }) => {
     return (path: string, data: string | object): Promise<{ res: IncomingMessage, body: string, status: number }> => {
         const buffer = (typeof data === 'object')
             ? JSON.stringify(data)
@@ -51,6 +64,7 @@ export const fetch = ({hostname, port}: { hostname: string, port: number }) => {
         ;
 
         const options = {
+            protocol: protocol && protocol + ':',
             hostname,
             port,
             path,
@@ -67,6 +81,11 @@ export const fetch = ({hostname, port}: { hostname: string, port: number }) => {
          * @param reject
          */
         const handle = (resolve, reject): void => {
+            let request = httpRequest;
+            if (protocol === 'https') {
+                request = httpsRequest;
+            }
+
             const req = request(options, (res) => {
                 const {statusCode: status} = res;
                 const response = [];

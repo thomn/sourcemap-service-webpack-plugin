@@ -1,17 +1,18 @@
-import {fetch} from './utils';
+import {fetch, stringify} from './utils';
 import {Status} from './status';
 
 /**
  *
+ * @param protocol
  * @param hostname
  * @param port
  * @param crc
  */
-const factory = ({hostname, port}: { hostname: string, port: number }, crc: string): Promise<{
+const factory = ({protocol, hostname, port}: { protocol: string, hostname: string, port: number }, crc: string): Promise<{
     id: string,
     upload: boolean,
 }> => (
-    fetch({hostname, port})('/artifact/claim', {crc})
+    fetch({protocol, hostname, port})('/artifact/claim', {crc})
         .then(({body, status}) => {
             if (status === Status.OK) {
                 return {
@@ -25,7 +26,11 @@ const factory = ({hostname, port}: { hostname: string, port: number }, crc: stri
                 };
             }
 
-            throw new Error(`Something went wrong: response="${body}", status="${status}"`);
+            const message = 'Something went wrong: ' + stringify({
+                body,
+                status,
+            });
+            throw new Error(message);
         })
 );
 

@@ -1,15 +1,18 @@
-import {fetch} from './utils';
+import {fetch, stringify} from './utils';
 import {Status} from './status';
+
+
 
 /**
  *
+ * @param protocol
  * @param hostname
  * @param port
  * @param id
  * @param data
  */
-const factory = async ({hostname, port}: { hostname: string, port: number }, id: string, data: string | object) => (
-    fetch({hostname, port})('/artifact/' + id, data)
+const factory = async ({protocol, hostname, port}: { protocol: string, hostname: string, port: number }, id: string, data: string | object) => (
+    fetch({protocol, hostname, port})('/artifact/' + id, data)
         .then(({body, status}) => {
             if (status === Status.CREATED) {
                 return {
@@ -17,7 +20,11 @@ const factory = async ({hostname, port}: { hostname: string, port: number }, id:
                 };
             }
 
-            throw new Error(`Something went wrong: response="${body}", status="${status}"`);
+            const message = 'Something went wrong: ' + stringify({
+                body,
+                status,
+            });
+            throw new Error(message);
         })
 );
 

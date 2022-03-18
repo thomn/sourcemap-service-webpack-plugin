@@ -87,9 +87,9 @@ const factory = ({protocol, hostname, port}: { protocol: string, hostname: strin
      */
     const processAsset = async (json: string, path: string) => {
         const crc = hash(json);
-        const {id, upload} = await claimer({hostname, port}, crc);
+        const {id, upload} = await claimer({protocol, hostname, port}, crc);
         if (upload) {
-            await uploader({hostname, port}, id, json);
+            await uploader({protocol, hostname, port}, id, json);
         }
 
         const url = getUrl(id);
