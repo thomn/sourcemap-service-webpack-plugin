@@ -39,7 +39,7 @@ describe('SourceMapServicePlugin', () => {
             });
 
             cleanup(id);
-            webpack(options({path: id}), (err, stats) => {
+            webpack(options({path: id}), () => {
                 const content = read(id);
                 const [ref] = content.split('//# ')
                     .reverse()
@@ -63,7 +63,7 @@ describe('SourceMapServicePlugin', () => {
             });
 
             cleanup(id);
-            webpack(options({path: id}), (err, {compilation}) => {
+            webpack(options({path: id}), () => {
                 const content = read(id);
                 const [ref] = content.split('//# ')
                     .reverse()
@@ -93,7 +93,7 @@ describe('SourceMapServicePlugin', () => {
                 const [warning] = logs;
 
                 assert(warning.type === 'warn');
-                assert(warning.args[0] === 'Something went wrong: response="trigger", status="500"');
+                assert(warning.args[0] === 'Something went wrong: body="trigger", status="500"');
                 done();
             });
         }).timeout(25 * 1000);
