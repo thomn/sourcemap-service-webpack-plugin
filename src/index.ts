@@ -16,6 +16,24 @@ type Options = Omit<SourceMapDevToolPlugin.Options, 'filename' | 'append'>
  * @param protocol
  * @param hostname
  * @param port
+ * @param json
+ * @param path
+ */
+const process = async ({protocol, hostname, port}: { protocol: string, hostname: string, port: number }, json: string, path: string): Promise<any> => {
+    const crc = hash(json);
+    const {id, upload} = await claimer({protocol, hostname, port}, crc);
+    if (upload) {
+        await uploader({protocol, hostname, port}, id, json);
+    }
+
+    return updater({protocol, hostname, port}, path, id);
+};
+
+/**
+ *
+ * @param protocol
+ * @param hostname
+ * @param port
  * @param options
  */
 const factory = ({protocol, hostname, port}: { protocol: string, hostname: string, port: number }, options: Options = {}) => {
@@ -59,21 +77,6 @@ const factory = ({protocol, hostname, port}: { protocol: string, hostname: strin
 
     /**
      *
-     * @param json
-     * @param path
-     */
-    const processAsset = async (json: string, path: string): Promise<string | any> => {
-        const crc = hash(json);
-        const {id, upload} = await claimer({protocol, hostname, port}, crc);
-        if (upload) {
-            await uploader({protocol, hostname, port}, id, json);
-        }
-
-        return updater({protocol, hostname, port}, path, id);
-    };
-
-    /**
-     *
      * @param compilation
      */
     const onCompilation = async (compilation: compilation.Compilation) => {
@@ -82,7 +85,7 @@ const factory = ({protocol, hostname, port}: { protocol: string, hostname: strin
 
         for (const {source, path} of assets) {
             const {_value: json} = source;
-            const promise = processAsset(json, path);
+            const promise = process({protocol, hostname, port}, json, path);
             promises.push(promise);
         }
 
@@ -118,8 +121,5 @@ const factory = ({protocol, hostname, port}: { protocol: string, hostname: strin
  */
 export default factory;
 export {
-    hash,
-    updater,
-    claimer,
-    uploader,
+    process,
 };
