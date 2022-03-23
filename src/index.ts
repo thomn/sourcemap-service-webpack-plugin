@@ -2,7 +2,8 @@ import {join} from 'path';
 import {SourceMapDevToolPlugin} from 'webpack';
 import claimer from './claimer';
 import uploader from './uploader';
-import {append, hash} from './utils';
+import updater from './updater';
+import {hash} from './utils';
 import type {Compiler, compilation} from 'webpack';
 
 const {name} = require('../package.json');
@@ -19,30 +20,6 @@ type Options = Omit<SourceMapDevToolPlugin.Options, 'filename' | 'append'>
  */
 const factory = ({protocol, hostname, port}: { protocol: string, hostname: string, port: number }, options: Options = {}) => {
     const promises: Promise<any>[] = [];
-
-    /**
-     *
-     * @param id
-     */
-    const getUrl = (id: string) => {
-        const parts = [
-            '\n//# sourceMappingURL=',
-        ];
-
-        if (protocol) {
-            parts.push(`${protocol}://`);
-        }
-
-        parts.push(hostname);
-
-        if (port) {
-            parts.push(`:${port}`);
-        }
-
-        parts.push(`/artifact/${id}`);
-
-        return parts.join('');
-    };
 
     /**
      *
@@ -85,16 +62,14 @@ const factory = ({protocol, hostname, port}: { protocol: string, hostname: strin
      * @param json
      * @param path
      */
-    const processAsset = async (json: string, path: string) => {
+    const processAsset = async (json: string, path: string): Promise<string | any> => {
         const crc = hash(json);
         const {id, upload} = await claimer({protocol, hostname, port}, crc);
         if (upload) {
             await uploader({protocol, hostname, port}, id, json);
         }
 
-        const url = getUrl(id);
-
-        return append(path, url);
+        return updater({protocol, hostname, port}, path, id);
     };
 
     /**
@@ -141,5 +116,10 @@ const factory = ({protocol, hostname, port}: { protocol: string, hostname: strin
  * Date: 19.01.2022
  * Time: 15:22
  */
-// module.exports = factory;
-export = factory;
+export default factory;
+export {
+    hash,
+    updater,
+    claimer,
+    uploader,
+};
