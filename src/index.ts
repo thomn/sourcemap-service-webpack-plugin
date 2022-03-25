@@ -5,25 +5,25 @@ import uploader from './uploader';
 import updater from './updater';
 import {hash} from './utils';
 import type {Compiler, compilation} from 'webpack';
+import type {Options, SourceMapDevToolPluginOptions} from './types';
 
 const {name} = require('../package.json');
 const MAP_EXTENSION = '.map';
-
-type Options = Omit<SourceMapDevToolPlugin.Options, 'filename' | 'append'>
 
 /**
  *
  * @param protocol
  * @param hostname
  * @param port
+ * @param context
  * @param json
  * @param path
  */
-const process = async ({protocol, hostname, port}: { protocol: string, hostname: string, port: number }, json: string, path: string): Promise<any> => {
+const process = async ({protocol, hostname, port, context}: Options, json: string, path: string): Promise<any> => {
     const crc = hash(json);
     const {id, upload} = await claimer({protocol, hostname, port}, crc);
     if (upload) {
-        await uploader({protocol, hostname, port}, id, json);
+        await uploader({protocol, hostname, port, context}, id, json);
     }
 
     return updater({protocol, hostname, port}, path, id);
@@ -34,9 +34,10 @@ const process = async ({protocol, hostname, port}: { protocol: string, hostname:
  * @param protocol
  * @param hostname
  * @param port
+ * @param context
  * @param options
  */
-const factory = ({protocol, hostname, port}: { protocol: string, hostname: string, port: number }, options: Options = {}) => {
+const factory = ({protocol, hostname, port, context}: Options, options: SourceMapDevToolPluginOptions = {}) => {
     const promises: Promise<any>[] = [];
 
     /**
@@ -85,7 +86,7 @@ const factory = ({protocol, hostname, port}: { protocol: string, hostname: strin
 
         for (const {source, path} of assets) {
             const {_value: json} = source;
-            const promise = process({protocol, hostname, port}, json, path);
+            const promise = process({protocol, hostname, port, context}, json, path);
             promises.push(promise);
         }
 

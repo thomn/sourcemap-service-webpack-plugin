@@ -1,4 +1,5 @@
 import {appendFile} from 'fs';
+import type {Options} from './types';
 
 /**
  *
@@ -8,7 +9,7 @@ import {appendFile} from 'fs';
  * @param path
  * @param id
  */
-const factory = ({protocol, hostname, port}: { protocol: string, hostname: string, port: number }, path: string, id: string) => {
+const factory = ({protocol, hostname, port}: Options, path: string, id: string) => {
     const ref = [
         () => '\n//# sourceMappingURL=',
         ({protocol}) => protocol && `${protocol}://`,

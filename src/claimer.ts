@@ -1,5 +1,6 @@
 import {fetch, stringify} from './utils';
 import {Status} from './status';
+import type {Options} from './types';
 
 /**
  *
@@ -8,7 +9,7 @@ import {Status} from './status';
  * @param port
  * @param crc
  */
-const factory = ({protocol, hostname, port}: { protocol: string, hostname: string, port: number }, crc: string): Promise<{
+const factory = ({protocol, hostname, port}: Options, crc: string): Promise<{
     id: string,
     upload: boolean,
 }> => (

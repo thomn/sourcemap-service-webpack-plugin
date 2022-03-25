@@ -2,6 +2,7 @@ import {createHash} from 'crypto';
 import {IncomingMessage, request as httpRequest} from 'http';
 import {request as httpsRequest} from 'https';
 import {appendFile} from 'fs';
+import {Options} from './types';
 
 /**
  *
@@ -50,18 +51,16 @@ export const append = (file: string, data: string): Promise<string> => {
  * @param protocol
  * @param hostname
  * @param port
+ * @param context
  */
-export const fetch = ({protocol, hostname, port}: { protocol: string, hostname: string, port: number }) => {
+export const fetch = ({protocol, hostname, port, context}: Options) => {
     return (path: string, data: string | object): Promise<{ res: IncomingMessage, body: string, status: number }> => {
-        const buffer = (typeof data === 'object')
-            ? JSON.stringify(data)
-            : Buffer.from(data)
-        ;
+        const string = JSON.stringify({
+            data,
+            context,
+        });
 
-        const type = (typeof data === 'object')
-            ? 'application/json'
-            : 'text/plain'
-        ;
+        const type = 'application/json';
 
         const options = {
             protocol: protocol && protocol + ':',
@@ -71,7 +70,7 @@ export const fetch = ({protocol, hostname, port}: { protocol: string, hostname: 
             method: 'POST',
             headers: {
                 'Content-Type': type,
-                'Content-Length': buffer.length,
+                'Content-Length': string.length,
             },
         };
 
@@ -108,7 +107,7 @@ export const fetch = ({protocol, hostname, port}: { protocol: string, hostname: 
             });
 
             req.on('error', reject);
-            req.write(buffer);
+            req.write(string);
             req.end();
         };
 

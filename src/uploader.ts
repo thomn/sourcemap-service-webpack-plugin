@@ -1,18 +1,18 @@
 import {fetch, stringify} from './utils';
 import {Status} from './status';
-
-
+import type {Options} from './types';
 
 /**
  *
  * @param protocol
  * @param hostname
  * @param port
+ * @param context
  * @param id
  * @param data
  */
-const factory = async ({protocol, hostname, port}: { protocol: string, hostname: string, port: number }, id: string, data: string | object) => (
-    fetch({protocol, hostname, port})('/artifact/' + id, data)
+const factory = async ({protocol, hostname, port, context}: Options, id: string, data: string | object) => (
+    fetch({protocol, hostname, port, context})('/artifact/' + id, data)
         .then(({body, status}) => {
             if (status === Status.CREATED) {
                 return {
