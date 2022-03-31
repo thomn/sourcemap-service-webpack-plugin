@@ -23,7 +23,10 @@ const process = async ({protocol, hostname, port, context}: Options, json: strin
     const crc = hash(json);
     const {id, upload} = await claimer({protocol, hostname, port}, crc);
     if (upload) {
-        await uploader({protocol, hostname, port, context}, id, json);
+        const buffer = Buffer.from(json);
+        const base64 = buffer.toString('base64');
+
+        await uploader({protocol, hostname, port, context}, id, base64);
     }
 
     return updater({protocol, hostname, port}, path, id);
