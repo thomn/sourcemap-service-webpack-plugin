@@ -82,7 +82,7 @@ export const fetch = ({protocol, hostname, port, context}: Options) => {
             method: 'POST',
             headers: {
                 'Content-Type': 'text/plain',
-                'Content-Length': data.length,
+                'Content-Length': Buffer.byteLength(data, 'utf-8'),
             },
         };
 
