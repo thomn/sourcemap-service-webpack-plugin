@@ -18,13 +18,32 @@ export const hash = (string: string): string => (
  *
  * @param object
  */
+export const omit = (object: object) => {
+    const clone = Object.assign({}, object);
+
+    return Object.keys(clone)
+        .reduce((acc, key) => {
+            if (acc[key] == null) {
+                delete acc[key];
+            }
+
+            return acc;
+        }, clone)
+    ;
+};
+
+/**
+ *
+ * @param object
+ */
 export const stringify = (object: object): string => (
     Object.keys(object)
         .filter((key) => !!object[key])
         .map((key) => [key, object[key]])
         .reduce((acc, [key, value]) => acc.push(`${key}="${value}"`) && acc, [])
         .join(', ')
-)
+);
+
 /**
  *
  * @param file
@@ -54,14 +73,7 @@ export const append = (file: string, data: string): Promise<string> => {
  * @param context
  */
 export const fetch = ({protocol, hostname, port, context}: Options) => {
-    return (path: string, data: string | object): Promise<{ res: IncomingMessage, body: string, status: number }> => {
-        const string = JSON.stringify({
-            data,
-            context,
-        });
-
-        const type = 'application/json';
-
+    return (path: string, data: string): Promise<{ res: IncomingMessage, body: string, status: number }> => {
         const options = {
             protocol: protocol && protocol + ':',
             hostname,
@@ -69,10 +81,17 @@ export const fetch = ({protocol, hostname, port, context}: Options) => {
             path,
             method: 'POST',
             headers: {
-                'Content-Type': type,
-                'Content-Length': string.length,
+                'Content-Type': 'text/plain',
+                'Content-Length': data.length,
             },
         };
+
+        if (context) {
+            context = omit(context);
+            options.path += '?' + new URLSearchParams(context as any)
+                .toString()
+            ;
+        }
 
         /**
          *
@@ -94,7 +113,9 @@ export const fetch = ({protocol, hostname, port, context}: Options) => {
                 });
 
                 res.on('end', () => {
-                    const body = Buffer.concat(response).toString();
+                    const body = Buffer.concat(response)
+                        .toString()
+                    ;
 
                     resolve({
                         res,
@@ -107,7 +128,7 @@ export const fetch = ({protocol, hostname, port, context}: Options) => {
             });
 
             req.on('error', reject);
-            req.write(string);
+            req.write(data);
             req.end();
         };
 

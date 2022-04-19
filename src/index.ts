@@ -21,12 +21,9 @@ const MAP_EXTENSION = '.map';
  */
 const process = async ({protocol, hostname, port, context}: Options, json: string, path: string): Promise<any> => {
     const crc = hash(json);
-    const {id, upload} = await claimer({protocol, hostname, port}, crc);
+    const {upload, id} = await claimer({protocol, hostname, port}, crc);
     if (upload) {
-        const buffer = Buffer.from(json);
-        const base64 = buffer.toString('base64');
-
-        await uploader({protocol, hostname, port, context}, id, base64);
+        await uploader({protocol, hostname, port, context}, id, json);
     }
 
     return updater({protocol, hostname, port}, path, id);
@@ -72,6 +69,7 @@ const factory = ({protocol, hostname, port, context}: Options, options: SourceMa
         return Object.keys(compilation.assets)
             .filter((name) => /\.js$/.test(name))
             .map((name) => ({
+                name,
                 source: getSource(compilation, name),
                 path: getPath(compilation, name),
             }))
@@ -87,8 +85,13 @@ const factory = ({protocol, hostname, port, context}: Options, options: SourceMa
         const logger = compilation.getLogger(name);
         const assets = getAssets(compilation);
 
-        for (const {source, path} of assets) {
+        for (const {source, path, name} of assets) {
             const {_value: json} = source;
+            context = {
+                ...context,
+                name,
+            };
+
             const promise = process({protocol, hostname, port, context}, json, path);
             promises.push(promise);
         }

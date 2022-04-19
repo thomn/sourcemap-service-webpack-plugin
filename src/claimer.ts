@@ -13,7 +13,7 @@ const factory = ({protocol, hostname, port}: Options, crc: string): Promise<{
     id: string,
     upload: boolean,
 }> => (
-    fetch({protocol, hostname, port})('/artifact/claim', {crc})
+    fetch({protocol, hostname, port})('/artifact/claim', crc)
         .then(({body, status}) => {
             if (status === Status.OK) {
                 return {

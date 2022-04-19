@@ -5,5 +5,9 @@ export type Options = {
     protocol: string,
     hostname: string,
     port: number,
-    context?: object,
+    context?: {
+        name?: string,
+        version?: number | string,
+        user?: string
+    },
 };

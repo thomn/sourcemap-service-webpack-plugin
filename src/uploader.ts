@@ -11,7 +11,7 @@ import type {Options} from './types';
  * @param id
  * @param data
  */
-const factory = async ({protocol, hostname, port, context}: Options, id: string, data: string | object) => (
+const factory = async ({protocol, hostname, port, context}: Options, id: string, data: string) => (
     fetch({protocol, hostname, port, context})('/artifact/' + id, data)
         .then(({body, status}) => {
             if (status === Status.CREATED) {

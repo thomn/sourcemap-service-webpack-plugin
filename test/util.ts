@@ -62,6 +62,7 @@ export const interceptor = ({protocol, hostname, port}) => (
     ({method, uri, status, response = null}) => (
         nock(`${protocol}://${hostname}:${port}`)
             .intercept(uri, method)
+            .query(true)
             .reply(status, response)
 
     )
