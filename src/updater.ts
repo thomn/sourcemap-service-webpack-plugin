@@ -1,4 +1,5 @@
 import {appendFile} from 'fs';
+import {extname} from 'path';
 import type {Options} from './types';
 
 /**
@@ -11,12 +12,17 @@ import type {Options} from './types';
  */
 const factory = ({protocol, hostname, port}: Options, path: string, id: string) => {
     const ref = [
-        () => '\n//# sourceMappingURL=',
+        () => '\n',
+        ({path}) => extname(path) === '.js' ? '//#' : '/*#',
+        () => ' ',
+        () => 'sourceMappingURL=',
         ({protocol}) => protocol && `${protocol}://`,
         ({hostname}) => hostname,
         ({port}) => port && `:${port}`,
         ({id}) => id && `/artifact/${id}`,
-    ].map((fn) => fn({protocol, hostname, port, id}))
+        () => ' ',
+        ({path}) => extname(path) !== '.js' && '*/',
+    ].map((fn) => fn({protocol, hostname, port, id, path}))
         .filter(Boolean)
         .join('')
     ;
