@@ -1,6 +1,6 @@
 {
   "name": "@thomann/sourcemap-service-webpack-plugin",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "description": "webpack plugin for @thomann/sourcemap-service",
   "main": "./dist/index.js",
   "exports": "./dist/index.js",
