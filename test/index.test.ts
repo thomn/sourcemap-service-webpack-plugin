@@ -1,6 +1,7 @@
 import assert from 'assert';
 import webpack from 'webpack';
-import {make, interceptor, read, cleanup} from './util';
+import {process} from '../src';
+import {make, interceptor, tester} from './util';
 
 const {name} = require('../package-lock.json');
 
@@ -20,9 +21,10 @@ describe('SourceMapServicePlugin', () => {
         port,
     });
 
-    describe('clean state', () => {
-        it('should upload and append artifact url to bundle', (done) => {
-            const id = 'foo';
+    describe('barebone artifact processor', () => {
+        it('should use the right artifact url prefix', (done) => {
+            const id = 'css';
+            const {cleanup, copy, find, verify} = tester(id);
 
             intercept({
                 method: 'post',
@@ -38,15 +40,53 @@ describe('SourceMapServicePlugin', () => {
                 response: id,
             });
 
-            cleanup(id);
-            webpack(options({path: id}), () => {
-                const content = read(id);
-                const [ref] = content.split('//# ')
-                    .reverse()
-                ;
+            cleanup();
+            copy('index.css');
+            process({protocol, hostname, port},
+                'sourcemap',
+                find(),
+            ).then(() => {
+                try {
+                    verify('.css', (value) => {
+                        return value === `/*# sourceMappingURL=${protocol}://${hostname}:${port}/artifact/${id} */`;
+                    });
+                    done();
+                } catch (e) {
+                    done(e);
+                }
+            })
+        });
+    });
 
-                assert(ref === `sourceMappingURL=${protocol}://${hostname}:${port}/artifact/${id}`);
-                done();
+    describe('clean state', () => {
+        it('should upload and append artifact url to bundle', (done) => {
+            const id = 'foo';
+            const {cleanup, verify} = tester(id);
+
+            intercept({
+                method: 'post',
+                uri: '/artifact/claim',
+                status: 200,
+                response: id,
+            });
+
+            intercept({
+                method: 'post',
+                uri: `/artifact/${id}`,
+                status: 201,
+                response: id,
+            });
+
+            cleanup();
+            webpack(options({path: id}), () => {
+                try {
+                    verify('.js', (value) => {
+                        return value === `//# sourceMappingURL=${protocol}://${hostname}:${port}/artifact/${id}`;
+                    });
+                    done();
+                } catch (e) {
+                    done(e);
+                }
             });
         }).timeout(25 * 1000);
     });
@@ -54,6 +94,7 @@ describe('SourceMapServicePlugin', () => {
     describe('same build, previously uploaded', () => {
         it('should not upload artifact but append artifact url to bundle', (done) => {
             const id = 'bar';
+            const {cleanup, verify} = tester(id);
 
             intercept({
                 method: 'post',
@@ -62,15 +103,16 @@ describe('SourceMapServicePlugin', () => {
                 response: id,
             });
 
-            cleanup(id);
+            cleanup();
             webpack(options({path: id}), () => {
-                const content = read(id);
-                const [ref] = content.split('//# ')
-                    .reverse()
-                ;
-
-                assert(ref === `sourceMappingURL=${protocol}://${hostname}:${port}/artifact/${id}`);
-                done();
+                try {
+                    verify('.js', (value) => {
+                        return value === `//# sourceMappingURL=${protocol}://${hostname}:${port}/artifact/${id}`;
+                    });
+                    done();
+                } catch (e) {
+                    done(e);
+                }
             });
         }).timeout(25 * 1000);
     });
@@ -78,6 +120,7 @@ describe('SourceMapServicePlugin', () => {
     describe('unexpected response while claiming', () => {
         it('should throw error and upload nothing', (done) => {
             const id = 'baz';
+            const {cleanup} = tester(id);
 
             intercept({
                 method: 'post',
@@ -86,7 +129,7 @@ describe('SourceMapServicePlugin', () => {
                 response: 'trigger',
             });
 
-            cleanup(id);
+            cleanup();
             webpack(options({path: id}), (err, {compilation}) => {
                 // @ts-ignore
                 const logs = compilation.logging.get(name);

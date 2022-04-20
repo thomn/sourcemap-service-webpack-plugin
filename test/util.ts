@@ -1,7 +1,8 @@
-import {readFileSync, rmSync} from 'fs';
-import {resolve} from 'path';
+import {readFileSync, rmSync, copyFileSync, mkdirSync, existsSync} from 'fs';
+import {resolve, dirname, extname} from 'path';
 import nock from 'nock';
 import sourceMapServicePlugin from '../src';
+import assert from 'assert';
 
 /**
  *
@@ -30,30 +31,6 @@ export const make = ({protocol, hostname, port}: { protocol: string, hostname: s
 
 /**
  *
- */
-export const read = (name: string) => {
-    const path = resolve(__dirname, 'bundles', name, 'bundle.js');
-
-    return readFileSync(path, {encoding: 'utf-8'});
-};
-
-/**
- *
- */
-export const cleanup = (name: string) => {
-    const path = resolve(__dirname, 'bundles', name);
-
-    try {
-        rmSync(path, {
-            recursive: true,
-        });
-    } catch (e) {
-        //
-    }
-};
-
-/**
- *
  * @param protocol
  * @param hostname
  * @param port
@@ -64,6 +41,79 @@ export const interceptor = ({protocol, hostname, port}) => (
             .intercept(uri, method)
             .query(true)
             .reply(status, response)
-
     )
 );
+
+/**
+ *
+ * @param id
+ */
+export const tester = (id: string) => {
+    const cleanup = () => {
+        const path = resolve(__dirname, 'bundles', id);
+
+        try {
+            rmSync(path, {
+                recursive: true,
+            });
+        } catch (e) {
+            //
+        }
+    };
+
+    /**
+     *
+     * @param ext
+     */
+    const read = (ext: string) => {
+        const path = resolve(__dirname, 'bundles', id, 'bundle' + ext);
+
+        return readFileSync(path, {encoding: 'utf-8'});
+    };
+
+    /**
+     *
+     * @param file
+     */
+    const copy = (file: string) => {
+        const from = resolve(__dirname, 'fixtures', file);
+        const to = resolve(__dirname, 'bundles', id, 'bundle' + extname(file));
+
+        const folder = dirname(to);
+        if (!existsSync(folder)) {
+            mkdirSync(folder, {
+                recursive: true,
+            });
+        }
+
+        return copyFileSync(from, to);
+    };
+
+    /**
+     *
+     */
+    const find = (): string => {
+        return resolve(__dirname, 'bundles', id, 'bundle.css');
+    };
+
+    /**
+     *
+     * @param ext
+     * @param fn
+     */
+    const verify = (ext: string, fn: (string) => boolean) => {
+        const content = read(ext);
+        const regex = /\/\*# (.*) \*\/|\/\/# (.*)/gm;
+        const [match] = regex.exec(content);
+
+        return assert(fn(match.trim()) === true);
+    };
+
+    return {
+        cleanup,
+        read,
+        copy,
+        find,
+        verify,
+    };
+};
